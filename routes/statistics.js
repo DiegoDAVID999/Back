@@ -4,7 +4,7 @@ import { authenticateToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
-router.use(authenticateToken)
+// router.use(authenticateToken)
 
 router.get("/", async (req, res) => {
   try {

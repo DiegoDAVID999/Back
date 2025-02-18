@@ -8,7 +8,7 @@ import { printReceipt } from "../services/printer.js"
 
 const router = express.Router()
 
-router.use(authenticateToken)
+// router.use(authenticateToken)
 
 router.post("/", async (req, res) => {
   try {
