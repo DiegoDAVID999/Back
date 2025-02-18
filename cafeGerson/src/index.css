@@ -1,0 +1,105 @@
+/* Estilos generales */
+.receipt-container {
+  font-family: monospace;
+  max-width: 80mm;
+  margin: 0 auto;
+  padding: 5mm;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+  color: #000000;
+}
+
+.receipt-title {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.receipt-subtitle {
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.receipt-details {
+  margin-bottom: 5px;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 5px;
+}
+
+.receipt-table th,
+.receipt-table td {
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 2px;
+  text-align: left;
+}
+
+.receipt-total {
+  font-weight: bold;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 5px;
+  font-size: 9px;
+}
+
+/* Estilos para pantalla */
+@media screen {
+  .receipt-container {
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+/* Estilos para impresión */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-only,
+  .print-only * {
+    visibility: visible;
+  }
+
+  .print-only {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .no-print {
+    display: none;
+  }
+
+  .receipt-container {
+    max-width: 80mm;
+    padding: 5mm;
+    border: none;
+    box-shadow: none;
+  }
+
+  @page {
+    size: auto;
+    margin: 0;
+  }
+}
+
+

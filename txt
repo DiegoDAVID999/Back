@@ -1,0 +1,158 @@
+import { useState, useRef } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { useReactToPrint } from "react-to-print";
+import Receipt from "./Receipt";
+
+function Sales() {
+    // ... (otros estados y funciones sin cambios)
+    const [cart, setCart] = useState([]);
+  const [customId, setCustomId] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [lastSale, setLastSale] = useState(null);
+  const receiptRef = useRef();
+
+    const handlePrintScreen = useReactToPrint({
+        content: () => receiptRef.current,
+    });
+
+    const addToCart = async () => {
+        try {
+          const response = await axios.get(`/api/products/${customId}`);
+          const product = response.data;
+          const existingItem = cart.find((item) => item.customId === customId);
+          if (existingItem) {
+            setCart(cart.map((item) =>
+              item.customId === customId
+                ? { ...item, quantity: item.quantity + Number(quantity) }
+                : item
+            ));
+          } else {
+            setCart([...cart, { ...product, quantity: Number(quantity) }]);
+          }
+          setCustomId("");
+          setQuantity(1);
+          Swal.fire("Éxito", "Producto agregado al carrito", "success");
+        } catch (error) {
+          Swal.fire("Error", "Producto no encontrado", "error");
+        }
+      };
+    
+      const removeFromCart = (customId) => {
+        setCart(cart.filter((item) => item.customId !== customId));
+        Swal.fire("Éxito", "Producto removido del carrito", "success");
+      };
+    
+      const handleCheckout = async () => {
+        try {
+          const response = await axios.post("/api/sales", { products: cart });
+          setLastSale(response.data);
+          Swal.fire("Éxito", "Venta realizada con éxito", "success");
+          setCart([]);
+        } catch (error) {
+          Swal.fire("Error", "Error al realizar la venta", "error");
+        }
+      };
+    
+      const imprimirRecibo = async (pedido) => {
+        try {
+          const response = await axios.post("/api/print", pedido, {
+            headers: { "Content-Type": "application/json" },
+          });
+          Swal.fire("Impresión", response.data.message, "success");
+        } catch (error) {
+          Swal.fire("Error", "No se pudo imprimir el recibo", "error");
+        }
+      };
+
+    const handlePrint = async () => {  // Elimina el setTimeout
+        if (!lastSale) {
+            Swal.fire("Error", "No hay una venta registrada para imprimir", "error");
+            return;
+        }
+
+        handlePrintScreen(); // Llama a la función de impresión de react-to-print *directamente*
+
+        try {
+            await imprimirRecibo(lastSale); // Imprime en la térmica
+            Swal.fire("Éxito", "Recibo enviado a la impresora.", "success");
+        } catch (error) {
+            console.error("Error al imprimir en la impresora térmica:", error);
+            Swal.fire("Error", "Error al imprimir en la impresora térmica.", "error");
+        }
+    };
+
+    const totalVenta = cart.reduce((total, item) => total + item.quantity * item.price, 0);
+
+  return (
+    <div className="container mt-4">
+      <h2 className="mb-4">Nueva Venta</h2>
+      <div className="input-group mb-3">
+        <input
+          type="text"
+          value={customId}
+          onChange={(e) => setCustomId(e.target.value)}
+          placeholder="ID del Producto"
+          className="form-control"
+        />
+        <input
+          type="number"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          min="1"
+          className="form-control"
+        />
+        <button onClick={addToCart} className="btn btn-primary">Agregar</button>
+      </div>
+      <table className="table table-bordered">
+        <thead className="table-dark">
+          <tr>
+            <th>ID del Producto</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cart.map((item) => (
+            <tr key={item.customId}>
+              <td>{item.customId}</td>
+              <td>{item.name}</td>
+              <td>
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => setCart(cart.map(i => i.customId === item.customId ? { ...i, quantity: Number(e.target.value) } : i))}
+                  className="form-control"
+                  min="1"
+                />
+              </td>
+              <td>{new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(item.price)}</td>
+              <td>{new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(item.quantity * item.price)}</td>
+              <td>
+                <button className="btn btn-danger" onClick={() => removeFromCart(item.customId)}>Eliminar</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h4 className="text-end mt-3">Total: {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(totalVenta)}</h4>
+      <button onClick={handleCheckout} className="btn btn-success me-2">Realizar Venta</button>
+
+      {lastSale && (
+        <button onClick={handlePrint} className="btn btn-secondary">Imprimir Recibo</button>
+      )}
+
+      <div style={{ display: "none" }}>
+        <Receipt sale={lastSale} ref={receiptRef} />
+      </div>
+    </div>
+  );
+}
+
+export default Sales;
+
+

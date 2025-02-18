@@ -1,0 +1,69 @@
+/* Estilos generales */
+.navbar {
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+  }
+  
+  /* Logo */
+  .logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+  
+  /* Links de navegación */
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: #4a4a4a;
+    font-size: 14px;
+    padding: 5px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: #333;
+    border-bottom: 2px solid #ccc;
+  }
+  
+  .nav-link.active {
+    color: #111;
+    border-bottom: 2px solid #4f46e5;
+  }
+  
+  /* Botón de cerrar sesión */
+  .logout-btn {
+    background-color: #4f46e5;
+    color: white;
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background-color: #4338ca;
+  }
+  
