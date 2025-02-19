@@ -24,12 +24,16 @@ class Server {
   middlewares() {
     this.app.use(
       cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173", // Asegúrate de que esta URL coincida con la de tu frontend
+        origin: [
+          process.env.FRONTEND_URL || "http://localhost:5173", 
+          "https://front-1-lh44.onrender.com" // ✅ Dominio del frontend desplegado
+        ],
         credentials: true,
       })
     );
     this.app.use(express.json());
   }
+  
 
   routes() {
     this.app.use("/api/auth", authRoutes);
