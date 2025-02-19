@@ -24,10 +24,8 @@ class Server {
   middlewares() {
     this.app.use(
       cors({
-        origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",") : ["http://localhost:5173"],
+        origin: process.env.FRONTEND_URL || "http://localhost:5173", // Asegúrate de que esta URL coincida con la de tu frontend
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allowedHeaders: ["Content-Type", "Authorization"],
       })
     );
     this.app.use(express.json());
