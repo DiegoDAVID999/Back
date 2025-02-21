@@ -3,14 +3,14 @@
 import express from "express"
 import Sale from "../models/Sale.js"
 import { authenticateToken } from "../middleware/auth.js"
-import { deleteReport } from "../services/reportControllers.js"
+import { deleteReport } from '../services/reportControllers.js'
 import { generatePDF } from "../services/pdfGenerator.js"
 import fs from "fs"
 import path from "path"
 
 const router = express.Router()
 
-// router.use(authenticateToken)
+router.use(authenticateToken)
 
 const generateDailyReport = async (startDate, endDate) => {
   try {
@@ -64,7 +64,7 @@ const generateWeeklyReport = async (startDate, endDate) => {
     const dailyTotals = Array(7)
       .fill(0)
       .map((_, index) => ({
-        dayOfWeek: (index + 1) % 7, // Ahora 0 es lunes, 1 es martes, ..., 6 es domingo
+        dayOfWeek: index, // Ahora 0 es lunes, 1 es martes, ..., 6 es domingo
         total: 0,
       }))
 
@@ -247,4 +247,3 @@ router.delete("/:type", authenticateToken, async (req, res) => {
 })
 
 export default router
-
