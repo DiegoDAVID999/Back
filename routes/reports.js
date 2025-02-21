@@ -10,7 +10,7 @@ import path from "path"
 
 const router = express.Router()
 
-router.use(authenticateToken)
+// router.use(authenticateToken)
 
 const generateDailyReport = async (startDate, endDate) => {
   try {
