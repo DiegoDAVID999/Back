@@ -120,31 +120,32 @@ const generateMonthlyReport = async (startDate, endDate) => {
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0)
     const totalSales = sales.length
 
-    const lastWeekEnd = new Date(weeklyTotals[weeklyTotals.length - 1].endDate)
-    const remainingDays = {
-      startDate: lastWeekEnd.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
-      total: sales
-        .filter((sale) => sale.date >= lastWeekEnd && sale.date < endDate)
-        .reduce((sum, sale) => sum + sale.total, 0),
-      salesCount: sales.filter((sale) => sale.date >= lastWeekEnd && sale.date < endDate).length,
-    }
+    const productsSold = sales.reduce((acc, sale) => {
+      sale.products.forEach((item) => {
+        if (acc[item.customId]) {
+          acc[item.customId].quantity += item.quantity
+          acc[item.customId].total += item.price * item.quantity
+        } else {
+          acc[item.customId] = {
+            name: item.name,
+            customId: item.customId,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.price * item.quantity,
+          }
+        }
+      })
+      return acc
+    }, {})
 
-    const report = {
+    return {
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
       weeklyTotals,
-      remainingDays,
       totalRevenue,
       totalSales,
+      productsSold: Object.values(productsSold),
     }
-
-    // Guardar el reporte en un archivo
-    const reportFileName = `monthly_report_${report.startDate}_${report.endDate}.json`
-    const reportPath = path.join(__dirname, "..", "reports", reportFileName)
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
-
-    return report
   } catch (error) {
     console.error("Error en generateMonthlyReport:", error)
     throw error
