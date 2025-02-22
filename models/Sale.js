@@ -14,7 +14,7 @@ const saleSchema = new mongoose.Schema({
     },
   ],
   total: { type: Number, required: true },
-  date: { type: Date, default: Date.now },
+  date: { type: Date, default: () => new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }))  },
 })
 
 export default mongoose.model("Sale", saleSchema)
