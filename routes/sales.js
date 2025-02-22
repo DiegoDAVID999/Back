@@ -10,15 +10,17 @@ const router = express.Router()
 
 // router.use(authenticateToken)
 
+const moment = require("moment-timezone");
+
 router.post("/", async (req, res) => {
   try {
-    const { products } = req.body
+    const { products } = req.body;
 
     const saleProducts = await Promise.all(
       products.map(async (item) => {
-        const product = await Product.findOne({ customId: item.customId })
+        const product = await Product.findOne({ customId: item.customId });
         if (!product) {
-          throw new Error(`Producto con customId ${item.customId} no encontrado`)
+          throw new Error(`Producto con customId ${item.customId} no encontrado`);
         }
         return {
           product: product._id,
@@ -26,21 +28,28 @@ router.post("/", async (req, res) => {
           name: product.name,
           price: product.price,
           quantity: item.quantity,
-        }
-      }),
-    )
+        };
+      })
+    );
 
-    const total = saleProducts.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const total = saleProducts.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    const sale = new Sale({ products: saleProducts, total })
-    await sale.save()
+    // 🔥 Se agrega la fecha con la zona horaria correcta
+    const sale = new Sale({
+      products: saleProducts,
+      total,
+      date: moment().tz("America/Bogota").toDate(), // Ajusta a la hora local de Colombia
+    });
 
-    res.status(201).json(sale)
+    await sale.save();
+
+    res.status(201).json(sale);
   } catch (error) {
-    console.error("Error al crear la venta:", error)
-    res.status(500).json({ error: "Error al crear la venta", details: error.message })
+    console.error("Error al crear la venta:", error);
+    res.status(500).json({ error: "Error al crear la venta", details: error.message });
   }
-})
+});
+
 
 router.post("/print", async (req, res) => {
   try {
