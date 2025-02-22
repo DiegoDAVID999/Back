@@ -12,7 +12,6 @@ const router = express.Router()
 
 // router.use(authenticateToken)
 
-const moment = require("moment-timezone");
 
 router.post("/", async (req, res) => {
   try {
