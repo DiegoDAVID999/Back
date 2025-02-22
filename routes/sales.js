@@ -11,6 +11,21 @@ import moment from "moment-timezone"
 const router = express.Router()
 
 // router.use(authenticateToken)
+router.get("/test-fecha", async (req, res) => {
+  try {
+    const ventas = await Sale.find();
+    const ventasConFechaLocal = ventas.map(v => ({
+      ...v.toObject(),
+      dateBogota: moment(v.date).tz("America/Bogota").format("YYYY-MM-DD HH:mm:ss"),
+    }));
+    
+    res.json(ventasConFechaLocal);
+  } catch (error) {
+    console.error("Error al obtener ventas:", error);
+    res.status(500).json({ error: "Error al obtener ventas", details: error.message });
+  }
+});
+
 
 
 router.post("/", async (req, res) => {

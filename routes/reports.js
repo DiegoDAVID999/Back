@@ -7,10 +7,13 @@ import { deleteReport } from '../services/reportControllers.js'
 import { generatePDF } from "../services/pdfGenerator.js"
 import fs from "fs"
 import path from "path"
+import moment from "moment-timezone" // 📅 Importamos moment-timezone
 
 const router = express.Router()
 
 // router.use(authenticateToken)
+
+import moment from "moment-timezone"
 
 const generateDailyReport = async (startDate, endDate) => {
   try {
@@ -42,17 +45,26 @@ const generateDailyReport = async (startDate, endDate) => {
       return acc
     }, {})
 
+    const salesWithDateBogota = sales.map((sale) => ({
+      ...sale.toObject(),
+      dateBogota: moment(sale.date)
+        .tz("America/Bogota")
+        .format("YYYY-MM-DD HH:mm:ss"),
+    }))
+
     return {
-      date: startDate.toISOString().split("T")[0],
+      date: moment(startDate).tz("America/Bogota").format("YYYY-MM-DD"), // 📅 Ajustamos a la zona horaria
       totalSales,
       totalRevenue,
       productsSold: Object.values(productsSold),
+      sales: salesWithDateBogota, // 📂 Añadimos ventas con fecha ajustada
     }
   } catch (error) {
     console.error("Error en generateDailyReport:", error)
     throw error
   }
 }
+
 
 const generateWeeklyReport = async (startDate, endDate) => {
   try {
@@ -64,21 +76,21 @@ const generateWeeklyReport = async (startDate, endDate) => {
     const dailyTotals = Array(7)
       .fill(0)
       .map((_, index) => ({
-        dayOfWeek: index, // Ahora 0 es lunes, 1 es martes, ..., 6 es domingo
+        dayOfWeek: index, // 0 lunes, 1 martes, ..., 6 domingo
         total: 0,
       }))
 
     let totalRevenue = 0
 
     sales.forEach((sale) => {
-      const dayOfWeek = (sale.date.getDay() + 6) % 7 // Convertir 0 (domingo) a 6, 1 (lunes) a 0, etc.
+      const dayOfWeek = (sale.date.getDay() + 6) % 7
       dailyTotals[dayOfWeek].total += sale.total
       totalRevenue += sale.total
     })
 
     return {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: moment(startDate).tz("America/Bogota").format("YYYY-MM-DD"),
+      endDate: moment(endDate).tz("America/Bogota").format("YYYY-MM-DD"),
       dailyTotals,
       totalRevenue,
     }
@@ -106,8 +118,8 @@ const generateMonthlyReport = async (startDate, endDate) => {
       )
 
       weeklyTotals.push({
-        startDate: currentWeekStart.toISOString().split("T")[0],
-        endDate: new Date(Math.min(currentWeekEnd, endDate)).toISOString().split("T")[0],
+        startDate: moment(currentWeekStart).tz("America/Bogota").format("YYYY-MM-DD"),
+        endDate: moment(new Date(Math.min(currentWeekEnd, endDate))).tz("America/Bogota").format("YYYY-MM-DD"),
         total: weekSales.reduce((sum, sale) => sum + sale.total, 0),
         salesCount: weekSales.length,
       })
@@ -139,8 +151,8 @@ const generateMonthlyReport = async (startDate, endDate) => {
     }, {})
 
     return {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: moment(startDate).tz("America/Bogota").format("YYYY-MM-DD"),
+      endDate: moment(endDate).tz("America/Bogota").format("YYYY-MM-DD"),
       weeklyTotals,
       totalRevenue,
       totalSales,
@@ -154,10 +166,8 @@ const generateMonthlyReport = async (startDate, endDate) => {
 
 router.get("/daily", async (req, res) => {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = moment().tz("America/Bogota").startOf("day").toDate() // 📅 Zona horaria correcta
+    const tomorrow = moment(today).add(1, "days").toDate()
 
     const report = await generateDailyReport(today, tomorrow)
     res.json(report)
@@ -169,12 +179,9 @@ router.get("/daily", async (req, res) => {
 
 router.get("/weekly", async (req, res) => {
   try {
-    const today = new Date()
-    const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7)) // Ajustar para que la semana comience el lunes
-    startOfWeek.setHours(0, 0, 0, 0)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(endOfWeek.getDate() + 7)
+    const today = moment().tz("America/Bogota").toDate()
+    const startOfWeek = moment(today).tz("America/Bogota").startOf("isoWeek").toDate()
+    const endOfWeek = moment(startOfWeek).add(7, "days").toDate()
 
     const report = await generateWeeklyReport(startOfWeek, endOfWeek)
     res.json(report)
@@ -186,9 +193,9 @@ router.get("/weekly", async (req, res) => {
 
 router.get("/monthly", async (req, res) => {
   try {
-    const today = new Date()
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const today = moment().tz("America/Bogota").toDate()
+    const startOfMonth = moment(today).startOf("month").toDate()
+    const endOfMonth = moment(today).endOf("month").toDate()
 
     const report = await generateMonthlyReport(startOfMonth, endOfMonth)
     res.json(report)
@@ -200,11 +207,11 @@ router.get("/monthly", async (req, res) => {
 
 router.get("/monthly/download", async (req, res) => {
   try {
-    const today = new Date()
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const today = moment().tz("America/Bogota")
+    const startOfMonth = today.clone().startOf("month").toDate()
+    const endOfMonth = today.clone().endOf("month").toDate()
 
-    const reportFileName = `monthly_report_${startOfMonth.toISOString().split("T")[0]}_${endOfMonth.toISOString().split("T")[0]}.json`
+    const reportFileName = `monthly_report_${moment(startOfMonth).format("YYYY-MM-DD")}_${moment(endOfMonth).format("YYYY-MM-DD")}.json`
     const reportPath = path.join(__dirname, "..", "reports", reportFileName)
 
     if (fs.existsSync(reportPath)) {
@@ -220,9 +227,9 @@ router.get("/monthly/download", async (req, res) => {
 
 router.get("/monthly/print", async (req, res) => {
   try {
-    const today = new Date()
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const today = moment().tz("America/Bogota")
+    const startOfMonth = today.clone().startOf("month").toDate()
+    const endOfMonth = today.clone().endOf("month").toDate()
 
     const report = await generateMonthlyReport(startOfMonth, endOfMonth)
     const pdfBuffer = await generatePDF(report)
