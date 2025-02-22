@@ -13,7 +13,6 @@ const router = express.Router()
 
 // router.use(authenticateToken)
 
-import moment from "moment-timezone"
 
 const generateDailyReport = async (startDate, endDate) => {
   try {
