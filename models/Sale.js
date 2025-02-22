@@ -2,6 +2,10 @@
 
 
 import mongoose from "mongoose"
+import moment from "moment-timezone"
+
+
+
 
 const saleSchema = new mongoose.Schema({
   products: [
@@ -14,7 +18,10 @@ const saleSchema = new mongoose.Schema({
     },
   ],
   total: { type: Number, required: true },
-  date: { type: Date, default: () => new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }))  },
+  date: { 
+    type: Date, 
+    default: () => moment().tz("America/Bogota").toDate() 
+  },
 })
 
 export default mongoose.model("Sale", saleSchema)

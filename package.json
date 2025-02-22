@@ -23,6 +23,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
+    "moment-timezone": "^0.5.47",
     "mongodb": "^6.13.0",
     "mongoose": "^8.10.1",
     "node-schedule": "^2.1.1",
