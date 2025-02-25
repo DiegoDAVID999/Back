@@ -241,7 +241,7 @@ router.get("/monthly/print", async (req, res) => {
   }
 })
 
-router.delete("/:type", authenticateToken, async (req, res) => {
+router.delete("/:type", async (req, res) => {
   try {
     const { type } = req.params
     const result = await deleteReport(type)
