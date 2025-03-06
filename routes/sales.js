@@ -185,7 +185,7 @@ import moment from "moment-timezone"
 
 const router = express.Router()
 
-router.use(authenticateToken)
+// router.use(authenticateToken)
 
 router.post("/", async (req, res) => {
   try {
