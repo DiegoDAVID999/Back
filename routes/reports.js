@@ -99,6 +99,8 @@ const generateWeeklyReport = async (startDate, endDate) => {
   }
 }
 
+
+
 const generateMonthlyReport = async (startDate, endDate) => {
   try {
     console.log(`Generando reporte mensual desde ${startDate} hasta ${endDate}`)

@@ -13,7 +13,7 @@ dotenv.config();
 class Server {
   constructor() {
     this.app = express();
-    this.port = process.env.PORT || 5005;
+    this.port = process.env.PORT || 5009;
 
     this.middlewares();
     this.routes();
@@ -41,6 +41,7 @@ class Server {
     this.app.use("/api/sales", saleRoutes);
     this.app.use("/api/reports", reportRoutes);
     this.app.use("/api/statistics", statisticsRoutes);
+    
   }
 
   async connectDB() {

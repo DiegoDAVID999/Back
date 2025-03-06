@@ -47,4 +47,7 @@ const saleSchema = new mongoose.Schema({
   },
 });
 
+saleSchema.index({ date: 1 })
+
+
 export default mongoose.model("Sale", saleSchema);
