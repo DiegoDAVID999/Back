@@ -65,99 +65,37 @@ const generateDailyReport = async (startDate, endDate) => {
 }
 
 
-const generateWeeklyReport = async (startDate, endDate) => {
-  try {
-    console.log(`Generando reporte semanal desde ${startDate} hasta ${endDate}`)
-    const sales = await Sale.find({
-      date: { $gte: startDate, $lt: endDate },
-    })
-
-    const dailyTotals = Array(7)
-      .fill(0)
-      .map((_, index) => ({
-        dayOfWeek: index, // 0 lunes, 1 martes, ..., 6 domingo
-        total: 0,
-      }))
-
-    let totalRevenue = 0
-
-    sales.forEach((sale) => {
-      const dayOfWeek = (sale.date.getDay() + 6) % 7
-      dailyTotals[dayOfWeek].total += sale.total
-      totalRevenue += sale.total
-    })
-
-    return {
-      startDate: moment(startDate).tz("America/Bogota").format("YYYY-MM-DD"),
-      endDate: moment(endDate).tz("America/Bogota").format("YYYY-MM-DD"),
-      dailyTotals,
-      totalRevenue,
-    }
-  } catch (error) {
-    console.error("Error en generateWeeklyReport:", error)
-    throw error
-  }
-}
-
-
-
 const generateMonthlyReport = async (startDate, endDate) => {
   try {
     console.log(`Generando reporte mensual desde ${startDate} hasta ${endDate}`)
     const sales = await Sale.find({
       date: { $gte: startDate, $lt: endDate },
-    })
+    }).populate("products.product")
 
-    const weeklyTotals = []
-    let currentWeekStart = new Date(startDate)
-    let currentWeekEnd = new Date(currentWeekStart)
-    currentWeekEnd.setDate(currentWeekEnd.getDate() + 7)
-
-    while (currentWeekStart < endDate) {
-      const weekSales = sales.filter(
-        (sale) => sale.date >= currentWeekStart && sale.date < new Date(Math.min(currentWeekEnd, endDate)),
-      )
-
-      weeklyTotals.push({
-        startDate: moment(currentWeekStart).tz("America/Bogota").format("YYYY-MM-DD"),
-        endDate: moment(new Date(Math.min(currentWeekEnd, endDate))).tz("America/Bogota").format("YYYY-MM-DD"),
-        total: weekSales.reduce((sum, sale) => sum + sale.total, 0),
-        salesCount: weekSales.length,
-      })
-
-      currentWeekStart = new Date(currentWeekEnd)
-      currentWeekEnd = new Date(currentWeekStart)
-      currentWeekEnd.setDate(currentWeekEnd.getDate() + 7)
-    }
-
-    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0)
-    const totalSales = sales.length
-
-    const productsSold = sales.reduce((acc, sale) => {
-      sale.products.forEach((item) => {
-        if (acc[item.customId]) {
-          acc[item.customId].quantity += item.quantity
-          acc[item.customId].total += item.price * item.quantity
-        } else {
-          acc[item.customId] = {
-            name: item.name,
-            customId: item.customId,
-            quantity: item.quantity,
-            price: item.price,
-            total: item.price * item.quantity,
-          }
+    const dailyReport = sales.reduce((acc, sale) => {
+      const saleDate = moment(sale.date).tz("America/Bogota").format("YYYY-MM-DD")
+      if (!acc[saleDate]) {
+        acc[saleDate] = {
+          date: saleDate,
+          totalProductsSold: 0,
+          totalSales: 0,
+          totalRevenue: 0,
         }
+      }
+      acc[saleDate].totalSales += 1
+      acc[saleDate].totalRevenue += sale.total
+      sale.products.forEach((item) => {
+        acc[saleDate].totalProductsSold += item.quantity
       })
       return acc
     }, {})
 
+    const report = Object.values(dailyReport).sort((a, b) => new Date(a.date) - new Date(b.date))
+
     return {
       startDate: moment(startDate).tz("America/Bogota").format("YYYY-MM-DD"),
       endDate: moment(endDate).tz("America/Bogota").format("YYYY-MM-DD"),
-      weeklyTotals,
-      totalRevenue,
-      totalSales,
-      productsSold: Object.values(productsSold),
+      report,
     }
   } catch (error) {
     console.error("Error en generateMonthlyReport:", error)
@@ -178,19 +116,7 @@ router.get("/daily", async (req, res) => {
   }
 })
 
-router.get("/weekly", async (req, res) => {
-  try {
-    const today = moment().tz("America/Bogota").toDate()
-    const startOfWeek = moment(today).tz("America/Bogota").startOf("isoWeek").toDate()
-    const endOfWeek = moment(startOfWeek).add(7, "days").toDate()
 
-    const report = await generateWeeklyReport(startOfWeek, endOfWeek)
-    res.json(report)
-  } catch (error) {
-    console.error("Error al obtener el reporte semanal:", error)
-    res.status(500).json({ error: "Error al obtener el reporte semanal", details: error.message })
-  }
-})
 
 router.get("/monthly", async (req, res) => {
   try {
