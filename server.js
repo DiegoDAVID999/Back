@@ -7,6 +7,8 @@ import productRoutes from "./routes/products.js";
 import saleRoutes from "./routes/sales.js";
 import reportRoutes from "./routes/reports.js";
 import statisticsRoutes from "./routes/statistics.js";
+import userRoutes from "./routes/users.js" // Importar la nueva ruta de usuarios
+
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ class Server {
     this.app.use("/api/sales", saleRoutes);
     this.app.use("/api/reports", reportRoutes);
     this.app.use("/api/statistics", statisticsRoutes);
+    this.app.use("/api/users", userRoutes) // Agregar la ruta de usuarios
+
     
   }
 
