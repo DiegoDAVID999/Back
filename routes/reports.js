@@ -2,7 +2,6 @@
 import express from "express"
 import Sale from "../models/Sale.js"
 import { authenticateToken } from "../middleware/auth.js"
-import { deleteReport } from '../services/reportControllers.js'
 import { generatePDF } from "../services/pdfGenerator.js"
 import fs from "fs"
 import path from "path"
